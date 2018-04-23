@@ -4,7 +4,9 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+theme_set(theme_bw())
 ```
 
 ## R Markdown
@@ -14,7 +16,14 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r cars}
-summary(cars)
+dados = read_csv(here("data/series_from_imdb.csv"), 
+                    progress = FALSE,
+                    col_types = cols(.default = col_double(), 
+                                     series_name = col_character(), 
+                                     episode = col_character(), 
+                                     url = col_character(),
+                                     season = col_character())) %>% filter(series_name %in% c("Sherlock", "Elementary"))
+series = unique(subset(dados, select=c("series_name")))
 ```
 
 ## Including Plots
@@ -22,7 +31,32 @@ summary(cars)
 You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+estatisticas <- dados %>% 
+  group_by(series_name) %>%
+  summarise(mediana = median(user_rating), media = mean(user_rating), maximo = max(user_rating), minimo = min(user_rating))
+
+
 ```
+
+```{r}
+dados %>% 
+  ggplot(aes(x = season_ep, y = user_rating, color = season)) + 
+  geom_line() + 
+  geom_point() +
+  facet_grid(series_name ~ .)
+```
+
+```{r}
+dados %>% 
+    ggplot(aes(x = user_rating)) + 
+    geom_histogram(binwidth = .5, fill = "pink", color = "black") + 
+    geom_rug(alpha = .5, size = 1.5) +
+    facet_grid(season ~ series_name)
+```
+
+```{r}
+
+```
+
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
