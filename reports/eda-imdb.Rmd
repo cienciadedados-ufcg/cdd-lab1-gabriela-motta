@@ -1,62 +1,82 @@
 ---
-title: "eda-imdb"
-output: html_document
+title: "Problema 1 - Checkpoint 1 - Nossa pergunta"
+output:
+  html_notebook:
+    toc: yes
+    toc_float: yes
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float: yes
 ---
 
-```{r setup, include=FALSE}
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(here)
 theme_set(theme_bw())
 ```
 
-## R Markdown
+Analisando os episódios de Arrested Development e The Killing, séries que já existiam em outros canais e foram compradas pela Netflix para a produção da 4ª temporada.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
+```{r}
 dados = read_csv(here("data/series_from_imdb.csv"), 
                     progress = FALSE,
                     col_types = cols(.default = col_double(), 
                                      series_name = col_character(), 
                                      episode = col_character(), 
                                      url = col_character(),
-                                     season = col_character())) %>% filter(series_name %in% c("Sherlock", "Elementary"))
+                                     season = col_character())) %>% filter(series_name %in% c("Arrested Development", "The Killing"))
 series = unique(subset(dados, select=c("series_name")))
 ```
 
-## Including Plots
+##Qual das séries é mais bem avaliada?
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-estatisticas <- dados %>% 
-  group_by(series_name) %>%
-  summarise(mediana = median(user_rating), media = mean(user_rating), maximo = max(user_rating), minimo = min(user_rating))
-
-
+```{r}
+dados %>%
+  ggplot(aes(x = series_name, y = user_rating)) + 
+  geom_boxplot(width = .5, outlier.color = NA) +
+  geom_jitter(width = .1, size = 2, alpha = .5, color = "red") +
+  labs(x = "Série", y = "Avaliação dos Usuários")
 ```
+
+Os 50% melhores avaliados estão entre 8.5 e 9.3 para Arrested Development e entre 8.3 e 9.3 para The Killing. A diferença entre os intervalos é de apenas 0.2 pontos, porém é possível concluir que Arrested Development é mais bem avaliada porque possui a mesma porcentagem de episódios em um intervalo menor de notas.
+
+```{r}
+dados %>%
+  ggplot(aes(x = season, y = user_rating)) + 
+  geom_boxplot(width = .5, outlier.color = NA) +
+  geom_jitter(width = .1, size = 2, alpha = .5, color = "red") +
+  labs(x = "Temporada", y = "Avaliação dos Usuários") +
+  facet_wrap(~series_name)
+```
+
+```{r}
+p <- ggplot(dados, aes(x = season, y = user_rating)) + geom_boxplot() +
+  facet_wrap(~series_name)
+ggplot_build(p)$data
+```
+
+Por temporada, utilizando o mesmo tipo de comparação, vemos que as três primeiras temporadas de Arrested Development são mais bem avaliadas, mas a quarta temporada de The Killing foi melhor avaliada que a mesma temporada da outra série.
+
+##Qual das séries tem episódios de qualidade mais irregular?
+
+```{r}
+dados %>% 
+    ggplot(aes(x = user_rating)) + 
+    geom_histogram(binwidth = .5, fill = "pink", color = "black") +
+    facet_grid(season ~ series_name) +
+    labs(x = "Avaliação dos Usuários", y = "Quantidade de Episódios")
+```
+
+A maioria das avaliações de Arrested Development se concentra entre 8.5 e 9.0, exceto na última temporada, em que as notas estão espalhadas entre 7.0 e 9.0. As notas de The Killing geralmente estão entre 8.0 e 9.0, o que torna os episódios mais regulares.
 
 ```{r}
 dados %>% 
   ggplot(aes(x = season_ep, y = user_rating, color = season)) + 
   geom_line() + 
   geom_point() +
-  facet_grid(series_name ~ .)
+  facet_grid(series_name ~ .) +
+  labs(color ="Temporada", x = "Número do Episódio", y = "Avaliação dos Usuários")
 ```
 
-```{r}
-dados %>% 
-    ggplot(aes(x = user_rating)) + 
-    geom_histogram(binwidth = .5, fill = "pink", color = "black") + 
-    geom_rug(alpha = .5, size = 1.5) +
-    facet_grid(season ~ series_name)
-```
-
-```{r}
-
-```
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Pode-se perceber que a temporada produzida pela Netflix teve um desempenho em geral pior que as outras temporadas de Arrested Development, enquanto os episódios da 4ª temporada da série The Killing apresentam avaliações mais altas que os episódios de mesmo número das outras temporadas.
