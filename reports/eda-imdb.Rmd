@@ -1,11 +1,11 @@
 ---
 title: "Problema 1 - Checkpoint 1 - Nossa pergunta"
 output:
-  html_notebook:
-    toc: yes
-    toc_float: yes
   html_document:
     df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
     toc: yes
     toc_float: yes
 ---
@@ -48,12 +48,6 @@ dados %>%
   geom_jitter(width = .1, size = 2, alpha = .5, color = "red") +
   labs(x = "Temporada", y = "Avaliação dos Usuários") +
   facet_wrap(~series_name)
-```
-
-```{r}
-p <- ggplot(dados, aes(x = season, y = user_rating)) + geom_boxplot() +
-  facet_wrap(~series_name)
-ggplot_build(p)$data
 ```
 
 Por temporada, utilizando o mesmo tipo de comparação, vemos que as três primeiras temporadas de Arrested Development são mais bem avaliadas, mas a quarta temporada de The Killing foi melhor avaliada que a mesma temporada da outra série.
