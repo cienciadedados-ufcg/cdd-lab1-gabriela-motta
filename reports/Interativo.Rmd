@@ -1,0 +1,52 @@
+---
+title: "Prob 2, CP 1 - Revisitando uma visualização sua"
+output:
+  html_document:
+    code_folding: hide
+    df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(here)
+library(plotly)
+theme_set(theme_bw())
+```
+
+```{r}
+dados = read_csv(here("data/series_from_imdb.csv"), 
+                    progress = FALSE,
+                    col_types = cols(.default = col_double(), 
+                                     series_name = col_character(), 
+                                     episode = col_character(), 
+                                     url = col_character(),
+                                     season = col_character())) %>% filter(series_name %in% c("Arrow", "Flash", "DCs Legends of Tomorrow"))
+```
+
+```{r}
+dados$ep_type <- ifelse(dados$season_ep == 8 & dados$series_name == "Arrow", "Crossover",
+                 ifelse(dados$season_ep == 8 & dados$series_name == "Flash", "Crossover",
+                 ifelse(dados$series_ep == 23 & dados$series_name == "DCs Legends of Tomorrow", "Crossover", "Normal")))
+```
+
+##Analisando o número de votos nos crossovers do Arrowverse
+
+Será que um crossover atrai mais votos no IMDb que os episódios normais? Vamos analisar os dados de 5 temporadas de Arrow, 3 de Flash e 2 de Legends of Tomorrow. Os crossovers para as séries Arrow e Flash sempre acontecem no 8º episódio da temporada, e para Legends of Tomorrow aconteceu no 7º episódio da segunda temporada. Como Arrow é a série mais antiga, os crossovers só começaram na sua terceira temporada. No total serão observados 7 episódios.
+
+```{r fig.width=11}
+vis <- ggplot(dados, aes(x = series_ep, y = user_votes, color = series_name)) + 
+  geom_line() + 
+  geom_point(data = dados, size = 1, aes(color=ep_type)) +
+  scale_color_manual(values = c("Crossover"="deeppink", "Normal"="black", "Arrow" = "darkgreen", "Flash" = "darkred", "DCs Legends of Tomorrow" = "gold"), labels=c("Crossover", "Normal")) +
+  labs(color ="Série/Tipo", x = "Episódio", y = "Quantidade de Votos")
+
+ggplotly(vis)
+
+```
+
+É possível notar um pico no número de votos nas proximidades dos crossovers, mas existem episódios com mais votos. Em Arrow o episódio seguinte a um crossover é o mais avaliado de toda a série, e em Flash existem vários picos, principalmente no início. O crossover de Legends of Tomorrow se destaca por ser um pico nas avaliações cada vez menores.
